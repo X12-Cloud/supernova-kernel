@@ -1,0 +1,16 @@
+# Binaries and Objects
+*.o
+*.bin
+*.elf
+*.iso
+*.img
+
+# Build directories
+build/
+bin/
+obj/
+
+# Debug and OS trash
+.DS_Store
+*.log
+*.map
