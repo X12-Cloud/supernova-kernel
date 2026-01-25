@@ -1,3 +1,5 @@
+void init_gdt();
+
 void clear_screen() {
     char* vidmem = (char*)0xB8000;
     // VGA text mode is 80 columns * 25 rows
@@ -16,6 +18,7 @@ void kprint(const char* str, int row) {
 }
 
 void kernel_main() {
+    init_gdt();
     clear_screen();
     kprint("Supernova Kernel v0.1 Loaded", 0);
     kprint("Status: Running in 32-bit Protected Mode", 1);

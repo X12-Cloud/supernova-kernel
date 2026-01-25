@@ -1,18 +1,17 @@
 ENTRY(_start)
+OUTPUT_FORMAT(elf64-x86-64)
 
 SECTIONS
 {
-    /* Tell the linker to start as low as possible in the file */
     . = 1M;
 
-    .text : {
-        /* This MUST be first */
-        *(.multiboot)
+    .text :
+    {
+        KEEP(*(.multiboot))    /* Force header to the top */
         *(.text)
     }
 
-    /* Remove the BLOCK(4K) and ALIGN(4K) from everywhere for now */
     .rodata : { *(.rodata) }
     .data   : { *(.data) }
-    .bss    : { *(COMMON) *(.bss) }
+    .bss    : { *(.bss) }
 }
