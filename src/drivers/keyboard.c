@@ -1,9 +1,5 @@
 #include <stdint.h>
-
-// Helper functions from our io.c
-extern uint8_t inb(uint16_t port);
-extern void outb(uint16_t port, uint8_t val);
-extern void kprint(const char* str, int row, uint8_t color);
+#include "supernova.h"
 
 void keyboard_handler_c() {
     // Read the scancode from the keyboard's data port

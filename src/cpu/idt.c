@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "supernova.h"
 // Forward declarations so the compiler doesn't panic
 void pic_remap();
 void outb(uint16_t port, uint8_t val);
