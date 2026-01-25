@@ -1,17 +1,26 @@
-#include <stdint.h>
 #include "supernova.h"
 
+unsigned char kbd_us[128] = {
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',   
+    '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',   
+    0, 'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`', 0, '\\', 
+    'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/', 0, '*', 0, ' ', 0
+};
+
 void keyboard_handler_c() {
-    // Read the scancode from the keyboard's data port
     uint8_t scancode = inb(0x60);
 
-    // If the top bit is set, it means a key was released. 
-    // We only care about key presses (top bit clear).
     if (!(scancode & 0x80)) {
-        kprint("KEY PRESSED!", 5, 0x0B); // Cyan text at row 5
+        switch(scancode) {
+            case 0x48: move_cursor_relative(0, -1); break; // UP
+            case 0x50: move_cursor_relative(0, 1);  break; // DOWN
+            case 0x4B: move_cursor_relative(-1, 0); break; // LEFT
+            case 0x4D: move_cursor_relative(1, 0);  break; // RIGHT
+            default:
+                char c = kbd_us[scancode];
+                if (c > 0) putchar(c, 0x0F);
+                break;
+        }
     }
-
-    // Tell the PIC we have finished handling the interrupt
-    // This is the "Acknowledgment" (EOI - End of Interrupt)
     outb(0x20, 0x20);
 }

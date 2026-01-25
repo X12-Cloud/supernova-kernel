@@ -1,23 +1,55 @@
 #!/usr/bin/fish
 
-# 1. Compile the project
-make clean
-if make
-    # 2. Prepare the ISO structure
-    mkdir -p iso_root/boot/grub
-    cp supernova.bin iso_root/boot/
+set MODE $argv[1]
 
-    # 3. Create the GRUB config (Fish style)
-    printf "set timeout=0\nset default=0\n\nmenuentry \"Supernova\" {\n    multiboot /boot/supernova.bin\n    boot\n}\n" > iso_root/boot/grub/grub.cfg
-
-    # 4. Generate the ISO
-    if grub-mkrescue -o supernova.iso iso_root
-        echo "Successfully built supernova.iso"
-        # 5. Launch QEMU
+# Function to just launch QEMU
+function launch_qemu
+    if test -f supernova.iso
         qemu-system-x86_64 -cdrom supernova.iso -display sdl
     else
-        echo "Error: grub-mkrescue failed"
+        echo "Error: supernova.iso not found. Run with -clean first."
     end
-else
-    echo "Error: Make failed"
+end
+
+# Function to build everything
+function build_all
+    make clean
+    if make
+        mkdir -p iso_root/boot/grub
+        cp supernova.bin iso_root/boot/
+        printf "set timeout=0\nset default=0\n\nmenuentry \"Supernova\" {\n    multiboot /boot/supernova.bin\n    boot\n}\n" > iso_root/boot/grub/grub.cfg
+        
+        if grub-mkrescue -o supernova.iso iso_root
+            echo "Successfully built supernova.iso"
+            launch_qemu
+        else
+            echo "Error: grub-mkrescue failed"
+        end
+    else
+        echo "Error: Make failed"
+    end
+end
+
+function fast
+        if make
+            cp supernova.bin iso_root/boot/
+            # We don't need to remake the whole ISO if only the .bin changed 
+            # and we are using a persistent iso_root for QEMU
+            grub-mkrescue -o supernova.iso iso_root
+            launch_qemu
+        end
+end
+
+# Logic switch
+switch "$MODE"
+    case "-clean"
+        build_all
+    case "-run"
+        launch_qemu
+    case "-fast"
+	fast
+    case "*"
+        echo "Usage: ./run.sh [-clean | -run]"
+        echo "  -clean : Full rebuild, ISO generation, and run"
+        echo "  -run   : Just launch the existing ISO in QEMU"
 end
