@@ -12,6 +12,6 @@ SECTIONS
     }
 
     .rodata : { *(.rodata) }
-    .data   : { *(.data) }
-    .bss    : { *(.bss) }
+    .data : ALIGN(4096) { *(.data) }
+    .bss  : ALIGN(4096) { *(.bss) *(COMMON) }
 }
