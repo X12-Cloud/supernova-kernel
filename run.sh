@@ -5,7 +5,7 @@ set MODE $argv[1]
 # Function to just launch QEMU
 function launch_qemu
     if test -f supernova.iso
-        qemu-system-x86_64 -cdrom supernova.iso -display sdl
+        qemu-system-x86_64 -cdrom supernova.iso -display sdl -hda disk.img
     else
         echo "Error: supernova.iso not found. Run with -clean first."
     end
