@@ -12,10 +12,13 @@ void keyboard_handler_c() {
 
     if (!(scancode & 0x80)) {
         switch(scancode) {
-            case 0x48: move_cursor_relative(0, -1); break; // UP
-            case 0x50: move_cursor_relative(0, 1);  break; // DOWN
-            case 0x4B: move_cursor_relative(-1, 0); break; // LEFT
-            case 0x4D: move_cursor_relative(1, 0);  break; // RIGHT
+            case 0x48: move_cursor_relative(0, -1); break;
+            case 0x50: move_cursor_relative(0, 1);  break;
+            case 0x4B: move_cursor_relative(-1, 0); break;
+            case 0x4D: move_cursor_relative(1, 0);  break;
+            case 0x1C: 
+                shell_handle_enter(); // Redirects to shell.c
+                break;
             default:
                 char c = kbd_us[scancode];
                 if (c > 0) putchar(c, 0x0F);
