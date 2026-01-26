@@ -31,4 +31,8 @@ int strcmp(const char* s1, const char* s2);
 // Power Options
 void reboot();
 
+// System info
+void get_cpu_vendor(char* vendor);
+void get_cpu_brand(char* brand);
+
 #endif

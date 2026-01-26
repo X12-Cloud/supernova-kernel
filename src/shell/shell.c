@@ -101,10 +101,13 @@ void cmd_hi() {
 }
 
 void cmd_fetch() {
+    char brand[48];
+    get_cpu_brand(brand);
+
     kprint("      * ", -1, 0x0B); kprint("OS: Supernova\n", -1, 0x0F);
     kprint("     / \\     ", -1, 0x0B); kprint("Kernel: 0.1-alpha\n", -1, 0x0F);
-    kprint("    < @ >    ", -1, 0x0B); kprint("Arch: x86_64\n", -1, 0x0F);
-    kprint("     \\ /     ", -1, 0x0B); kprint("Console: VGA Text\n", -1, 0x0F);
+    kprint("    < @ >    ", -1, 0x0B); kprint("CPU: ", -1, 0x0F); kprint(brand, -1, 0x0F); putchar('\n', 0x0F);
+    kprint("     \\ /     ", -1, 0x0B); kprint("Arch: x86_64\n", -1, 0x0F);
     kprint("      v      ", -1, 0x0B); kprint("Status: Stable\n", -1, 0x0A);
 }
 
