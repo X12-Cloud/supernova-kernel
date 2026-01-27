@@ -21,6 +21,7 @@ void cmd_version(char* args);
 void cmd_reboot(char* args);
 void cmd_read(char* args);
 void cmd_write(char* args);
+void cmd_hex(char* args);
 
 /* --- The Modular Map --- */
 command_t shell_commands[] = {
@@ -31,12 +32,18 @@ command_t shell_commands[] = {
     {"version", "Show kernel version",      cmd_version},
     {"reboot",  "Restart the machine",      cmd_reboot},
     {"read",    "read <sector>",            cmd_read},
-    {"write",   "write <sector> <message>", cmd_write}
+    {"write",   "write <sector> <message>", cmd_write},
+    {"hex",   "hex <sector> - Hexdump the sector", cmd_hex}
 };
 
 const int num_commands = sizeof(shell_commands) / sizeof(command_t);
 
 /* --- Shell Engine --- */
+
+void print_prompt() {
+    kprint("Supernova> ", -1, 0x0B); // Print in Cyan at current position
+    input_start_x = cursor_x;       // Lock the "Safe Zone" to the current cursor spot
+}
 
 void get_command(char* out_buf) {
     int i = 0;
@@ -170,4 +177,43 @@ void cmd_write(char* args) {
 
     ata_write_sector(sector, buffer);
     kprint("Wrote to sector successfully.\n", -1, 0x0A);
+}
+
+void cmd_hex(char* args) {
+    uint32_t sector = 0;
+    if (*args != '\0') {
+        sector = str_to_int(args);
+    }
+
+    uint16_t buffer[256]; 
+    ata_read_sector(sector, buffer);
+
+    uint8_t* ptr = (uint8_t*)buffer;
+    
+    for (int i = 0; i < 512; i += 16) {
+        // 1. Print Offset (e.g., 0000, 0010)
+        print_hex_byte((i >> 8) & 0xFF);
+        print_hex_byte(i & 0xFF);
+        kprint("  ", -1, 0x07);
+
+        // 2. Print Hex Bytes
+        for (int j = 0; j < 16; j++) {
+            print_hex_byte(ptr[i + j]);
+            putchar(' ', 0x07);
+            if (j == 7) putchar(' ', 0x07); // Extra space in middle
+        }
+
+        kprint(" |", -1, 0x08);
+
+        // 3. Print ASCII sidebar
+        for (int j = 0; j < 16; j++) {
+            char c = ptr[i + j];
+            if (c >= 32 && c <= 126) {
+                putchar(c, 0x0F);
+            } else {
+                putchar('.', 0x08); // Dot for non-printable
+            }
+        }
+        kprint("|\n", -1, 0x08);
+    }
 }

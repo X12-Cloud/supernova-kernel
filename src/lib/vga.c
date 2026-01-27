@@ -85,7 +85,8 @@ void kprint(const char* str, int row, uint8_t color) {
     }
 }
 
-void print_prompt() {
-    kprint("Supernova> ", -1, 0x0B); // Print in Cyan at current position
-    input_start_x = cursor_x;       // Lock the "Safe Zone" to the current cursor spot
+void print_hex_byte(uint8_t byte) {
+    char* hex_chars = "0123456789ABCDEF";
+    putchar(hex_chars[(byte >> 4) & 0x0F], 0x0F); // High nibble
+    putchar(hex_chars[byte & 0x0F], 0x0F);        // Low nibble
 }

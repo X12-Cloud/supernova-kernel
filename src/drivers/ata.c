@@ -23,13 +23,14 @@ void ata_read_sector(uint32_t lba, uint16_t* buffer) {
     outb(ATA_LBA_LOW,  (uint8_t)lba);
     outb(ATA_LBA_MID,  (uint8_t)(lba >> 8));
     outb(ATA_LBA_HIGH, (uint8_t)(lba >> 16));
-    outb(ATA_COMMAND,  0x20); // 0x20 is "Read Sectors"
+    outb(ATA_COMMAND,  0x20); 
 
-    ata_wait_ready();
+    // IMPORTANT: Wait for DRQ (Bit 3) to be 1
+    // This ensures the disk has moved the data to the I/O buffer
+    while (!(inb(ATA_STATUS) & 0x08)); 
 
-    // Read 256 words (512 bytes)
     for (int i = 0; i < 256; i++) {
-        buffer[i] = inw(ATA_DATA); // Note: You'll need an 'inw' (input word) function
+        buffer[i] = inw(ATA_DATA);
     }
 }
 

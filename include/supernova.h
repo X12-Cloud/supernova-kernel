@@ -26,11 +26,13 @@ void putchar(char c, uint8_t color);
 void move_cursor_relative(int dx, int dy);
 void update_cursor();
 char get_char_at(int x, int y);
+void print_hex_byte(uint8_t byte);
 
 // Disk/ATA
 void ata_wait_ready();
 void ata_read_sector(uint32_t lba, uint16_t* buffer);
 void ata_write_sector(uint32_t lba, uint16_t* buffer);
+void fat32_init();
 
 // Strings
 int strcmp(const char* s1, const char* s2);
