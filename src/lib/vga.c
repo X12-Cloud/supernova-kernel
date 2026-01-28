@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include "supernova.h"
 
+// Use uint16_t because each "pixel" is 2 bytes (char + color)
+uint16_t* vga_buffer = (uint16_t*)0xB8000;
 int cursor_x = 0;
 int cursor_y = 0;
 int input_start_x = 0;
@@ -25,6 +27,7 @@ void clear_screen() {
 void putchar(char c, uint8_t color) {
     volatile char* vidmem = (volatile char*)0xB8000;
 
+    if (cursor_y >= 25) { scroll_up(); }
     if (c == '\n') {
         cursor_x = 0;
         cursor_y++;
@@ -89,4 +92,21 @@ void print_hex_byte(uint8_t byte) {
     char* hex_chars = "0123456789ABCDEF";
     putchar(hex_chars[(byte >> 4) & 0x0F], 0x0F); // High nibble
     putchar(hex_chars[byte & 0x0F], 0x0F);        // Low nibble
+}
+
+void scroll_up() {
+    // Move every line up by one
+    // Each line is 80 words (160 bytes)
+    for (int y = 0; y < 24; y++) {
+        for (int x = 0; x < 80; x++) {
+            vga_buffer[y * 80 + x] = vga_buffer[(y + 1) * 80 + x];
+        }
+    }
+
+    // Clear the bottom line
+    for (int x = 0; x < 80; x++) {
+        vga_buffer[24 * 80 + x] = (uint16_t)((0x07 << 8) | ' ');
+    }
+
+    cursor_y = 24;
 }

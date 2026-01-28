@@ -4,6 +4,11 @@ extern int cursor_x;
 extern int cursor_y;
 extern int input_start_x;
 
+int history_count = 0;
+int history_browse_index = -1;
+char cmd_history[MAX_HISTORY][128];
+char input_buffer[256];
+
 /* --- The Command Structure --- */
 typedef struct {
     char* name;
@@ -105,10 +110,27 @@ void exec_command(char* input) {
 }
 
 void shell_handle_enter() {
-    char cmd_buf[81];
-    get_command(cmd_buf);
+    get_command(input_buffer);
+
+    if (strlen(input_buffer) > 0 && history_count < MAX_HISTORY) {
+        strcpy(cmd_history[history_count], input_buffer);
+        history_count++;
+    }
+    
+    history_browse_index = history_count;
+
     putchar('\n', 0x07);
-    exec_command(cmd_buf);
+    exec_command(input_buffer);
+}
+
+void shell_replace_line(char* new_command) {
+    while (cursor_x > input_start_x) {
+        putchar('\b', 0x07);
+    }
+
+    kprint(new_command, -1, 0x0F);
+    
+    strcpy(input_buffer, new_command); 
 }
 
 void shell_exec() {

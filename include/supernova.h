@@ -29,6 +29,7 @@ void move_cursor_relative(int dx, int dy);
 void update_cursor();
 char get_char_at(int x, int y);
 void print_hex_byte(uint8_t byte);
+void scroll_up();
 
 // Disk/ATA
 void ata_wait_ready();
@@ -50,6 +51,7 @@ int memcmp(const void* s1, const void* s2, size_t n);
 void* memset(void* s, int c, size_t n);
 void* memcpy(void* dest, const void* src, size_t n);
 size_t strlen(const char* s);
+void strcpy(char* dest, const char* src);
 
 // Power Options
 void reboot();
