@@ -58,3 +58,36 @@ uint32_t cluster_to_sector(uint32_t cluster) {
     // sectors_per_cluster is usually 1 or 8 (check byte 13 of your BPB!)
     return root_dir_sector + ((cluster - 2) * 1); 
 }
+
+void format_to_83(char* input, char* output) {
+    // Fill output with spaces first
+    for(int i = 0; i < 11; i++) output[i] = ' ';
+
+    int i = 0;
+    // Copy the name part (up to 8 chars or until a dot)
+    while (input[i] != '.' && input[i] != '\0' && i < 8) {
+        char c = input[i];
+        if (c >= 'a' && c <= 'z') c -= 32; // Force uppercase
+        output[i] = c;
+        i++;
+    }
+
+    // Move to the extension part
+    char* dot = 0;
+    for (int j = 0; input[j] != '\0'; j++) {
+        if (input[j] == '.') {
+            dot = &input[j + 1];
+            break;
+        }
+    }
+
+    if (dot) {
+        int j = 0;
+        while (dot[j] != '\0' && j < 3) {
+            char c = dot[j];
+            if (c >= 'a' && c <= 'z') c -= 32; // Force uppercase
+            output[8 + j] = c;
+            j++;
+        }
+    }
+}

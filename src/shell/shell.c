@@ -258,36 +258,32 @@ void cmd_ls(char* args) {
 
 void cmd_cat(char* args) {
     if (*args == '\0') {
-        kprint("Usage: cat <FILENAME.EXT>\n", -1, 0x0C);
+        kprint("Usage: cat <filename.ext>\n", -1, 0x0C);
         return;
     }
+
+    char target[11];
+    format_to_83(args, target); // Convert "hello.txt" to "HELLO   TXT"
 
     uint8_t buf[512];
     extern uint32_t root_dir_sector;
     ata_read_sector(root_dir_sector, (uint16_t*)buf);
 
     for (int i = 0; i < 512; i += 32) {
-        if (buf[i] == 0) break;
-        if (buf[i] == 0xE5 || buf[i + 11] == 0x0F) continue;
+        if (buf[i] == 0x00) break;
+        if (buf[i] == 0xE5) continue;
 
-        // Check if this entry matches the filename in 'args'
-        // For simplicity, this assumes user types "HELLO   TXT" 
-        // (We can fix the dot parsing later)
-        if (memcmp(&buf[i], args, 11) == 0) {
-            // Found it! 
-            // Bytes 26-27 are the Low Cluster Number
+        if (memcmp(&buf[i], target, 11) == 0) {
             uint16_t cluster = *(uint16_t*)&buf[i + 26];
+            uint32_t sector = root_dir_sector + (cluster - 2);
+
+            uint16_t file_data[256];
+            ata_read_sector(sector, file_data);
             
-            // Formula: Data starts at RootSector + (Cluster - 2)
-            uint32_t file_sector = root_dir_sector + (cluster - 2);
-
-            uint16_t file_buf[256];
-            ata_read_sector(file_sector, file_buf);
-
-            kprint((char*)file_buf, -1, 0x0F);
+            kprint((char*)file_data, -1, 0x0F);
             putchar('\n', 0x07);
             return;
         }
     }
-    kprint("File not found. Note: Use 8.3 format (e.g., HELLO   TXT)\n", -1, 0x0C);
+    kprint("File not found.\n", -1, 0x0C);
 }

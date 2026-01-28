@@ -34,6 +34,8 @@ void ata_wait_ready();
 void ata_read_sector(uint32_t lba, uint16_t* buffer);
 void ata_write_sector(uint32_t lba, uint16_t* buffer);
 void fat32_init();
+uint32_t cluster_to_sector(uint32_t cluster);
+void format_to_83(char* input, char* output);
 
 // Strings
 int strcmp(const char* s1, const char* s2);
