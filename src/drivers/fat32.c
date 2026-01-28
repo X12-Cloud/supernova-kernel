@@ -36,20 +36,20 @@ static uint8_t bpb_buffer[512];
 static fat32_bpb_t* bpb;
 uint32_t first_data_sector;
 
+static uint8_t sector_buffer[512];
+uint32_t root_dir_sector;
+
 void fat32_init() {
-    uint8_t sector[512];
-    ata_read_sector(0, (uint16_t*)sector);
+    ata_read_sector(0, (uint16_t*)sector_buffer);
 
-    // Reserved sectors (usually 32)
-    uint16_t res_secs = *(uint16_t*)&sector[14];
-    // Number of FAT tables (usually 2)
-    uint8_t fat_count = sector[16];
-    // Sectors per FAT table
-    uint32_t fat_size = *(uint32_t*)&sector[36];
+    uint16_t reserved_sectors = *(uint16_t*)&sector_buffer[14];
+    uint8_t fat_count = sector_buffer[16];
+    uint32_t sectors_per_fat = *(uint32_t*)&sector_buffer[36];
 
-    // Data starts after all that:
-    first_data_sector = res_secs + (fat_count * fat_size);
-    
-    kprint("FAT32: Data Area Starts at Sector ", -1, 0x0A);
-    // print_int(first_data_sector);
+    // Calculate Root Dir Sector
+    root_dir_sector = reserved_sectors + (fat_count * sectors_per_fat);
+
+    kprint("FAT32: Root Directory is at Sector: ", -1, 0x0A);
+    kprint_int(root_dir_sector, 0x0E); // Print the number in Yellow
+    putchar('\n', 0x07);
 }

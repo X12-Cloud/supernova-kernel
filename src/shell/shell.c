@@ -22,6 +22,7 @@ void cmd_reboot(char* args);
 void cmd_read(char* args);
 void cmd_write(char* args);
 void cmd_hex(char* args);
+void cmd_ls(char* args);
 
 /* --- The Modular Map --- */
 command_t shell_commands[] = {
@@ -33,7 +34,8 @@ command_t shell_commands[] = {
     {"reboot",  "Restart the machine",      cmd_reboot},
     {"read",    "read <sector>",            cmd_read},
     {"write",   "write <sector> <message>", cmd_write},
-    {"hex",   "hex <sector> - Hexdump the sector", cmd_hex}
+    {"hex",   "hex <sector> - Hexdump the sector", cmd_hex},
+    {"ls",   "ls - List the file contents", cmd_ls}
 };
 
 const int num_commands = sizeof(shell_commands) / sizeof(command_t);
@@ -216,5 +218,39 @@ void cmd_hex(char* args) {
             }
         }
         kprint("|\n", -1, 0x08);
+    }
+}
+
+void cmd_ls(char* args) {
+    uint8_t buf[512];
+    // Use the variable we calculated in fat32_init
+    extern uint32_t root_dir_sector; 
+    
+    ata_read_sector(root_dir_sector, (uint16_t*)buf);
+
+    kprint("Directory Listing:\n", -1, 0x0E);
+
+    for (int i = 0; i < 512; i += 32) {
+        // If the first byte is 0, there are no more files
+        if (buf[i] == 0x00) break;
+        
+        // If the first byte is 0xE5, the file was deleted
+        if (buf[i] == 0xE5) continue;
+
+        // Skip "Long File Name" entries (Attribute byte at offset 11 is 0x0F)
+        if (buf[i + 11] == 0x0F) continue;
+
+        // Print the 8-char filename
+        for (int j = 0; j < 8; j++) {
+            if (buf[i + j] != ' ') putchar(buf[i + j], 0x0F);
+        }
+
+        // Print a dot and the 3-char extension
+        putchar('.', 0x07);
+        for (int j = 8; j < 11; j++) {
+            if (buf[i + j] != ' ') putchar(buf[i + j], 0x0F);
+        }
+        
+        putchar('\n', 0x07);
     }
 }

@@ -16,3 +16,21 @@ int str_to_int(char* s) {
     }
     return res;
 }
+
+void kprint_int(uint32_t n, int color) {
+    if (n == 0) {
+        putchar('0', color);
+        return;
+    }
+
+    char buf[11]; // Max uint32_t is 10 digits
+    int i = 10;
+    buf[i] = '\0';
+
+    while (n > 0) {
+        buf[--i] = (n % 10) + '0';
+        n /= 10;
+    }
+
+    kprint(&buf[i], -1, color);
+}
