@@ -31,6 +31,7 @@ void cmd_cat(char* args);
 void cmd_echo(char* args);
 void cmd_touch(char* args);
 void cmd_rm(char* args);
+// void cmd_history(char* args);
 
 /* --- The Modular Map --- */
 command_t shell_commands[] = {
@@ -47,7 +48,8 @@ command_t shell_commands[] = {
     {"cat",     "cat - List the contents of a file", cmd_cat},
     {"echo",    "Print argument/message",           cmd_echo},
     {"touch",   "Make a new file",          cmd_touch},
-    {"rm",      "rm <filename> - delete file",    cmd_rm},
+    {"rm",      "rm <filename> - Delete file",    cmd_rm},
+    // {"history", "Show command history",     cmd_history},
 };
 
 const int num_commands = sizeof(shell_commands) / sizeof(command_t);
@@ -366,3 +368,12 @@ void cmd_touch(char* args) {
 }
 
 void cmd_rm(char* args) { fat32_delete_file(args); }
+
+/* void cmd_history(char* args) {
+    kprint("Recent Commands:\n", -1, 0x0E);
+    for (int i = 0; i < history_count; i++) {
+        kprint("  ", -1, 0x07);
+        kprint(cmd_history[i], -1, 0x0F);
+        putchar('\n', 0x07);
+    }
+} */
