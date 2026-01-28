@@ -78,21 +78,17 @@ void fat32_create_file(char* filename) {
             kprint_int(i, 0x0A);
             kprint("\n", -1, 0x07);
 
-            // 1. Wipe the entry clean
             memset(&entries[i], 0, sizeof(fat32_entry_t));
 
-            // 2. Format name to 8.3 (e.g. "test.txt" -> "TEST    TXT")
             char formatted_name[11];
             format_to_83(filename, formatted_name);
 
-            // 3. Fill the entry fields
             memcpy(entries[i].name, formatted_name, 8);
             memcpy(entries[i].ext, &formatted_name[8], 3);
             entries[i].attributes = 0x20; // Archive attribute
             entries[i].cluster_low = 5;   // Hardcoded for now
             entries[i].size = 0;          // New file is empty
 
-            // 4. IMPORTANT: Write the modified sector back to disk!
             ata_write_sector(root_dir_sector, (uint16_t*)sector_buf);
             
             kprint("File created successfully.\n", -1, 0x0A);
@@ -101,4 +97,62 @@ void fat32_create_file(char* filename) {
     }
 
     kprint("Error: No free slots in root directory.\n", -1, 0x0C);
+}
+
+void fat32_write_file(char* filename, char* data) {
+    uint8_t buffer[512];
+    memset(buffer, 0, 512); // Clear the scratchpad
+    
+    uint32_t data_len = strlen(data);
+    if (data_len > 512) data_len = 512; 
+    memcpy(buffer, data, data_len);
+
+    uint32_t target_sector = cluster_to_sector(5);
+
+    ata_write_sector(target_sector, (uint16_t*)buffer);
+
+    kprint("Data written to Cluster 5\n", -1, 0x0A);
+}
+
+// Returns the index (0-15) of the file if found, or -1 if not found
+int fat32_find_file(char* filename) {
+    uint8_t buf[512];
+    extern uint32_t root_dir_sector;
+    char target[11];
+    
+    format_to_83(filename, target);
+    ata_read_sector(root_dir_sector, (uint16_t*)buf);
+
+    for (int i = 0; i < 512; i += 32) {
+        if (buf[i] == 0x00) break;
+        if ((uint8_t)buf[i] == 0xE5) continue;
+        
+        // Compare the 11 formatted bytes
+        if (memcmp(&buf[i], target, 11) == 0) {
+            return i / 32; // Found it! Return the entry index
+        }
+    }
+    return -1; // Not found
+}
+
+void fat32_delete_file(char* filename) {
+    uint8_t buf[512];
+    char target[11];
+    format_to_83(filename, target);
+    
+    ata_read_sector(root_dir_sector, (uint16_t*)buf);
+
+    for (int i = 0; i < 512; i += 32) {
+        if (buf[i] == 0x00) break;
+        if (memcmp(&buf[i], target, 11) == 0) {
+            // THE DELETE MOVE: Mark as 0xE5
+            buf[i] = 0xE5; 
+            
+            // Save it back to disk
+            ata_write_sector(root_dir_sector, (uint16_t*)buf);
+            kprint("File deleted.\n", -1, 0x0A);
+            return;
+        }
+    }
+    kprint("File not found.\n", -1, 0x0C);
 }

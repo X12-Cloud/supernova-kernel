@@ -25,6 +25,7 @@ void cmd_ls(char* args);
 void cmd_cat(char* args);
 void cmd_echo(char* args);
 void cmd_touch(char* args);
+void cmd_rm(char* args);
 
 /* --- The Modular Map --- */
 command_t shell_commands[] = {
@@ -41,6 +42,7 @@ command_t shell_commands[] = {
     {"cat",     "cat - List the contents of a file", cmd_cat},
     {"echo",    "Print argument/message",           cmd_echo},
     {"touch",   "Make a new file",          cmd_touch},
+    {"rm",      "rm <filename> - delete file",    cmd_rm},
 };
 
 const int num_commands = sizeof(shell_commands) / sizeof(command_t);
@@ -128,12 +130,35 @@ void cmd_help(char* args) {
 
 void cmd_clear(char* args) { clear_screen(); }
 void cmd_hi(char* args) { kprint("Hello from the Supernova Kernel!\n", -1, 0x0E); }
-void cmd_echo(char* args) { 
-    if (*args == '\0') { 
-	kprint("Usage: echo <message>", -1, 0x0C); putchar('\n', 0x07); return;
-    } 
-    kprint(args, -1, 0x0E);
-    putchar('\n', 0x07);
+
+void cmd_echo(char* args) {
+    char* redir = 0;
+    /* int file_found = 0;
+    int index = fat32_find_file(args);
+    if (index != -1) { file_found = 1; } */
+    // Look for '>'
+    for (int i = 0; args[i] != '\0'; i++) {
+        if (args[i] == '>') {
+            args[i] = '\0'; // Terminate the message string here
+            redir = &args[i + 1];
+            break;
+        }
+    }
+
+    if (redir) {
+        while (*redir == ' ') redir++;
+	int index = fat32_find_file(redir);
+        
+        if (index == -1) { 
+            fat32_create_file(redir); 
+        }
+        // Write data (We need a fat32_write_file function for this!)
+        kprint("Redirecting to file...\n", -1, 0x0B);
+	fat32_write_file(redir, args);
+    } else {
+        kprint(args, -1, 0x0E);
+        putchar('\n', 0x07);
+    }
 }
 
 void cmd_fetch(char* args) {
@@ -235,9 +260,24 @@ void cmd_hex(char* args) {
 
 void cmd_ls(char* args) {
     uint8_t buf[512];
+
+    if (*args != '\0') {
+        // We are searching for a specific file
+        int index = fat32_find_file(args);
+        if (index != -1) {
+            kprint("File Found: ", -1, 0x0A);
+            kprint(args, -1, 0x0F);
+            putchar('\n', 0x07);
+        } else {
+            kprint("File Not Found: ", -1, 0x0C);
+            kprint(args, -1, 0x0F);
+            putchar('\n', 0x07);
+        }
+        return;
+    }
+    
     // Use the variable we calculated in fat32_init
     extern uint32_t root_dir_sector; 
-    
     ata_read_sector(root_dir_sector, (uint16_t*)buf);
 
     kprint("Directory Listing:\n", -1, 0x0E);
@@ -302,3 +342,5 @@ void cmd_cat(char* args) {
 void cmd_touch(char* args) {
     fat32_create_file(args);
 }
+
+void cmd_rm(char* args) { fat32_delete_file(args); }

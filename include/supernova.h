@@ -38,6 +38,9 @@ void fat32_init();
 uint32_t cluster_to_sector(uint32_t cluster);
 void format_to_83(char* input, char* output);
 void fat32_create_file(char* filename);
+void fat32_write_file(char* filename,  char* data);
+int fat32_find_file(char* filename);
+void fat32_delete_file(char* filename);
 
 // Strings
 int strcmp(const char* s1, const char* s2);
