@@ -181,7 +181,8 @@ void cmd_write(char* args) {
 
 void cmd_hex(char* args) {
     uint32_t sector = 0;
-    if (*args != '\0') {
+    // If user typed "hex 5", read sector 5. Otherwise, read 0.
+    if (args && *args != '\0') {
         sector = str_to_int(args);
     }
 
@@ -191,27 +192,27 @@ void cmd_hex(char* args) {
     uint8_t* ptr = (uint8_t*)buffer;
     
     for (int i = 0; i < 512; i += 16) {
-        // 1. Print Offset (e.g., 0000, 0010)
+        // 1. Offset (e.g. 0000, 0010)
         print_hex_byte((i >> 8) & 0xFF);
         print_hex_byte(i & 0xFF);
         kprint("  ", -1, 0x07);
 
-        // 2. Print Hex Bytes
+        // 2. Hex data
         for (int j = 0; j < 16; j++) {
             print_hex_byte(ptr[i + j]);
             putchar(' ', 0x07);
-            if (j == 7) putchar(' ', 0x07); // Extra space in middle
+            if (j == 7) kprint(" ", -1, 0x07); // Middle gap
         }
 
         kprint(" |", -1, 0x08);
 
-        // 3. Print ASCII sidebar
+        // 3. ASCII sidebar
         for (int j = 0; j < 16; j++) {
             char c = ptr[i + j];
             if (c >= 32 && c <= 126) {
-                putchar(c, 0x0F);
+                putchar(c, 0x0F); // Readable
             } else {
-                putchar('.', 0x08); // Dot for non-printable
+                putchar('.', 0x08); // Non-printable
             }
         }
         kprint("|\n", -1, 0x08);

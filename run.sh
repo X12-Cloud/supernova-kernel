@@ -49,7 +49,8 @@ switch "$MODE"
     case "-fast"
 	fast
     case "*"
-        echo "Usage: ./run.sh [-clean | -run]"
+        echo "Usage: ./run.sh [-clean | -run | -fast]"
         echo "  -clean : Full rebuild, ISO generation, and run"
         echo "  -run   : Just launch the existing ISO in QEMU"
+        echo "  -fast   : Incremental build, ISO generation, and run"
 end
