@@ -53,3 +53,8 @@ void fat32_init() {
     kprint_int(root_dir_sector, 0x0E); // Print the number in Yellow
     putchar('\n', 0x07);
 }
+
+uint32_t cluster_to_sector(uint32_t cluster) {
+    // sectors_per_cluster is usually 1 or 8 (check byte 13 of your BPB!)
+    return root_dir_sector + ((cluster - 2) * 1); 
+}

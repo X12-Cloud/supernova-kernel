@@ -1,7 +1,6 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-#include <stdint.h>
 #include "supernova.h"
 
 void print_prompt();

@@ -1,5 +1,4 @@
 #include "supernova.h"
-#include "shell.h"
 
 extern int cursor_x;
 extern int cursor_y;
@@ -23,6 +22,7 @@ void cmd_read(char* args);
 void cmd_write(char* args);
 void cmd_hex(char* args);
 void cmd_ls(char* args);
+void cmd_cat(char* args);
 
 /* --- The Modular Map --- */
 command_t shell_commands[] = {
@@ -35,7 +35,8 @@ command_t shell_commands[] = {
     {"read",    "read <sector>",            cmd_read},
     {"write",   "write <sector> <message>", cmd_write},
     {"hex",   "hex <sector> - Hexdump the sector", cmd_hex},
-    {"ls",   "ls - List the file contents", cmd_ls}
+    {"ls",   "ls - List the file contents", cmd_ls},
+    {"cat",   "cat - List the contents of a file", cmd_cat},
 };
 
 const int num_commands = sizeof(shell_commands) / sizeof(command_t);
@@ -253,4 +254,40 @@ void cmd_ls(char* args) {
         
         putchar('\n', 0x07);
     }
+}
+
+void cmd_cat(char* args) {
+    if (*args == '\0') {
+        kprint("Usage: cat <FILENAME.EXT>\n", -1, 0x0C);
+        return;
+    }
+
+    uint8_t buf[512];
+    extern uint32_t root_dir_sector;
+    ata_read_sector(root_dir_sector, (uint16_t*)buf);
+
+    for (int i = 0; i < 512; i += 32) {
+        if (buf[i] == 0) break;
+        if (buf[i] == 0xE5 || buf[i + 11] == 0x0F) continue;
+
+        // Check if this entry matches the filename in 'args'
+        // For simplicity, this assumes user types "HELLO   TXT" 
+        // (We can fix the dot parsing later)
+        if (memcmp(&buf[i], args, 11) == 0) {
+            // Found it! 
+            // Bytes 26-27 are the Low Cluster Number
+            uint16_t cluster = *(uint16_t*)&buf[i + 26];
+            
+            // Formula: Data starts at RootSector + (Cluster - 2)
+            uint32_t file_sector = root_dir_sector + (cluster - 2);
+
+            uint16_t file_buf[256];
+            ata_read_sector(file_sector, file_buf);
+
+            kprint((char*)file_buf, -1, 0x0F);
+            putchar('\n', 0x07);
+            return;
+        }
+    }
+    kprint("File not found. Note: Use 8.3 format (e.g., HELLO   TXT)\n", -1, 0x0C);
 }

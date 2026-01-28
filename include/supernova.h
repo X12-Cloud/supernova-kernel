@@ -2,6 +2,7 @@
 #define SUPERNOVA_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include "shell.h"
 
 // important vars
@@ -38,6 +39,7 @@ void fat32_init();
 int strcmp(const char* s1, const char* s2);
 int str_to_int(char* s);
 void kprint_int(uint32_t n, int color);
+int memcmp(const void* s1, const void* s2, size_t n);
 
 // Power Options
 void reboot();
