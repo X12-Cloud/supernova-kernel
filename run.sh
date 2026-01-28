@@ -5,7 +5,14 @@ set MODE $argv[1]
 # Function to just launch QEMU
 function launch_qemu
     if test -f supernova.iso
-        qemu-system-x86_64 -cdrom supernova.iso -display sdl -hda disk.img
+        # -boot d: Tells QEMU to prioritize the CD-ROM for booting
+        # -drive format=raw,file=fatdsk.img: Correct way to attach the data disk
+        qemu-system-x86_64 \
+            -cdrom supernova.iso \
+            -drive format=raw,file=fatdsk.img \
+            -boot d \
+            -display sdl \
+            -m 256M
     else
         echo "Error: supernova.iso not found. Run with -clean first."
     end
