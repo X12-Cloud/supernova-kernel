@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "shell.h"
+#include "drivers/fat32.h"
 
 // important vars
 extern int cursor_x;
@@ -36,12 +37,16 @@ void ata_write_sector(uint32_t lba, uint16_t* buffer);
 void fat32_init();
 uint32_t cluster_to_sector(uint32_t cluster);
 void format_to_83(char* input, char* output);
+void fat32_create_file(char* filename);
 
 // Strings
 int strcmp(const char* s1, const char* s2);
 int str_to_int(char* s);
 void kprint_int(uint32_t n, int color);
 int memcmp(const void* s1, const void* s2, size_t n);
+void* memset(void* s, int c, size_t n);
+void* memcpy(void* dest, const void* src, size_t n);
+size_t strlen(const char* s);
 
 // Power Options
 void reboot();

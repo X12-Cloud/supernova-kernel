@@ -1,36 +1,5 @@
 #include "supernova.h"
 
-typedef struct {
-    uint8_t  boot_jmp[3];
-    char     oem_name[8];
-    uint16_t bytes_per_sector;
-    uint8_t  sectors_per_cluster;
-    uint16_t reserved_sector_count;
-    uint8_t  table_count;
-    uint16_t root_entry_count;
-    uint16_t total_sectors_16;
-    uint8_t  media_type;
-    uint16_t table_size_16;
-    uint16_t sectors_per_track;
-    uint16_t head_side_count;
-    uint32_t hidden_sector_count;
-    uint32_t total_sectors_32;
-    // FAT32 Extended Fields
-    uint32_t table_size_32;
-    uint16_t extended_flags;
-    uint16_t fat_version;
-    uint32_t root_cluster;
-    uint16_t fat_info;
-    uint16_t backup_BS_sector;
-    uint8_t  reserved_0[12];
-    uint8_t  drive_number;
-    uint8_t  reserved_1;
-    uint8_t  boot_signature;
-    uint32_t volume_id;
-    char     volume_label[11];
-    char     file_system_type[8];
-} __attribute__((packed)) fat32_bpb_t;
-
 // Static buffer to hold the BPB so it doesn't vanish off the stack
 static uint8_t bpb_buffer[512];
 static fat32_bpb_t* bpb;
@@ -90,4 +59,46 @@ void format_to_83(char* input, char* output) {
             j++;
         }
     }
+}
+
+void fat32_create_file(char* filename) {
+    uint8_t sector_buf[512];
+    // Read the current root directory state
+    ata_read_sector(root_dir_sector, (uint16_t*)sector_buf);
+
+    fat32_entry_t* entries = (fat32_entry_t*)sector_buf;
+    
+    // Scan all 16 entries in the sector
+    for (int i = 0; i < 16; i++) {
+        uint8_t first_char = (uint8_t)entries[i].name[0];
+
+        // 0x00 = Never used, 0xE5 = Deleted
+        if (first_char == 0x00 || first_char == 0xE5) {
+            kprint("\nFound empty slot at index: ", -1, 0x0A);
+            kprint_int(i, 0x0A);
+            kprint("\n", -1, 0x07);
+
+            // 1. Wipe the entry clean
+            memset(&entries[i], 0, sizeof(fat32_entry_t));
+
+            // 2. Format name to 8.3 (e.g. "test.txt" -> "TEST    TXT")
+            char formatted_name[11];
+            format_to_83(filename, formatted_name);
+
+            // 3. Fill the entry fields
+            memcpy(entries[i].name, formatted_name, 8);
+            memcpy(entries[i].ext, &formatted_name[8], 3);
+            entries[i].attributes = 0x20; // Archive attribute
+            entries[i].cluster_low = 5;   // Hardcoded for now
+            entries[i].size = 0;          // New file is empty
+
+            // 4. IMPORTANT: Write the modified sector back to disk!
+            ata_write_sector(root_dir_sector, (uint16_t*)sector_buf);
+            
+            kprint("File created successfully.\n", -1, 0x0A);
+            return; // Exit function so we don't hit the error message below
+        }
+    }
+
+    kprint("Error: No free slots in root directory.\n", -1, 0x0C);
 }

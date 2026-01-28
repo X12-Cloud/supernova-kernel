@@ -45,3 +45,28 @@ int memcmp(const void* s1, const void* s2, size_t n) {
     }
     return 0;
 }
+
+void* memset(void* s, int c, size_t n) {
+    uint8_t* p = (uint8_t*)s;
+    while (n--) {
+        *p++ = (uint8_t)c;
+    }
+    return s;
+}
+
+void* memcpy(void* dest, const void* src, size_t n) {
+    uint8_t* d = (uint8_t*)dest;
+    const uint8_t* s = (const uint8_t*)src;
+    while (n--) {
+        *d++ = *s++;
+    }
+    return dest;
+}
+
+size_t strlen(const char* s) {
+    size_t len = 0;
+    while (s[len]) {
+        len++;
+    }
+    return len;
+}

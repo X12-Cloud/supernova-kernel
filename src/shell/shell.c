@@ -23,6 +23,8 @@ void cmd_write(char* args);
 void cmd_hex(char* args);
 void cmd_ls(char* args);
 void cmd_cat(char* args);
+void cmd_echo(char* args);
+void cmd_touch(char* args);
 
 /* --- The Modular Map --- */
 command_t shell_commands[] = {
@@ -34,9 +36,11 @@ command_t shell_commands[] = {
     {"reboot",  "Restart the machine",      cmd_reboot},
     {"read",    "read <sector>",            cmd_read},
     {"write",   "write <sector> <message>", cmd_write},
-    {"hex",   "hex <sector> - Hexdump the sector", cmd_hex},
-    {"ls",   "ls - List the file contents", cmd_ls},
-    {"cat",   "cat - List the contents of a file", cmd_cat},
+    {"hex",     "hex <sector> - Hexdump the sector", cmd_hex},
+    {"ls",      "ls - List the file contents", cmd_ls},
+    {"cat",     "cat - List the contents of a file", cmd_cat},
+    {"echo",    "Print argument/message",           cmd_echo},
+    {"touch",   "Make a new file",          cmd_touch},
 };
 
 const int num_commands = sizeof(shell_commands) / sizeof(command_t);
@@ -124,6 +128,13 @@ void cmd_help(char* args) {
 
 void cmd_clear(char* args) { clear_screen(); }
 void cmd_hi(char* args) { kprint("Hello from the Supernova Kernel!\n", -1, 0x0E); }
+void cmd_echo(char* args) { 
+    if (*args == '\0') { 
+	kprint("Usage: echo <message>", -1, 0x0C); putchar('\n', 0x07); return;
+    } 
+    kprint(args, -1, 0x0E);
+    putchar('\n', 0x07);
+}
 
 void cmd_fetch(char* args) {
     char brand[49];
@@ -286,4 +297,8 @@ void cmd_cat(char* args) {
         }
     }
     kprint("File not found.\n", -1, 0x0C);
+}
+
+void cmd_touch(char* args) {
+    fat32_create_file(args);
 }
