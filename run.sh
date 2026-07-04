@@ -54,7 +54,7 @@ switch "$MODE"
     case "-run"
         launch_qemu
     case "-fast"
-	fast
+        fast
     case "*"
         echo "Usage: ./run.sh [-clean | -run | -fast]"
         echo "  -clean : Full rebuild, ISO generation, and run"

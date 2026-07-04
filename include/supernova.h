@@ -60,4 +60,7 @@ void reboot();
 void get_cpu_vendor(char* vendor);
 void get_cpu_brand(char* brand);
 
+// ELF loader
+int exec_elf(char* filename);
+
 #endif

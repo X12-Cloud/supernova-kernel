@@ -31,6 +31,7 @@ void cmd_cat(char* args);
 void cmd_echo(char* args);
 void cmd_touch(char* args);
 void cmd_rm(char* args);
+void cmd_run(char* args);
 // void cmd_history(char* args);
 
 /* --- The Modular Map --- */
@@ -49,6 +50,7 @@ command_t shell_commands[] = {
     {"echo",    "Print argument/message",           cmd_echo},
     {"touch",   "Make a new file",          cmd_touch},
     {"rm",      "rm <filename> - Delete file",    cmd_rm},
+    {"run",     "run <filename.elf> - Execute an ELF file", cmd_run},
     // {"history", "Show command history",     cmd_history},
 };
 
@@ -368,6 +370,14 @@ void cmd_touch(char* args) {
 }
 
 void cmd_rm(char* args) { fat32_delete_file(args); }
+
+void cmd_run(char* args) {
+    if (*args == '\0') {
+        kprint("Usage: run <filename.elf>\n", -1, 0x0C);
+        return;
+    }
+    exec_elf(args);
+}
 
 /* void cmd_history(char* args) {
     kprint("Recent Commands:\n", -1, 0x0E);
